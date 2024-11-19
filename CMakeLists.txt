@@ -55,7 +55,11 @@ if(CUDAToolkit_FOUND)
 endif()
 
 if(haveCuda)
-    set(GGML_CUDA ON)
+    set(SD_CUBLAS ON)
+endif()
+
+if(UNIX AND APPLE)
+    set(SD_METAL ON)
 endif()
 
 set(GGML_CCACHE OFF)
@@ -66,14 +70,14 @@ add_subdirectory(stable-diffusion.cpp)
 # subdirs
 add_subdirectory(code)
 
-# if(AC_SD_BUILD_TESTS OR AC_SD_BUILD_EXAMPLES)
-#     CPMAddPackage(
-#         NAME ac-test-data-whisper
-#         VERSION 1.0.0
-#         GIT_REPOSITORY https://huggingface.co/alpaca-core/ac-test-data-whisper
-#         GIT_TAG f33d981742198f2b55494265fc9d43156b39a30d
-#     )
-# endif()
+if(AC_SD_BUILD_TESTS OR AC_SD_BUILD_EXAMPLES)
+    CPMAddPackage(
+        NAME ac-test-data-stable-diffusion
+        VERSION 1.0.0
+        GIT_REPOSITORY https://huggingface.co/alpaca-core/ac-test-data-stable-diffusion
+        GIT_TAG 409c64a7add0b0f8d2d88847cdf5e5171ce6948a
+    )
+endif()
 
 if(AC_SD_BUILD_TESTS)
     CPMAddPackage(gh:iboB/doctest-util@0.1.2)

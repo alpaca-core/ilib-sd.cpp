@@ -4,50 +4,75 @@
 
 // trivial example of using alpaca-core's whisper inference
 
-// whisper
-// #include <ac/whisper/Init.hpp>
-// #include <ac/whisper/Model.hpp>
-// #include <ac/whisper/Instance.hpp>
-
-// #include <ac-audio.hpp>
+// stable-diffusion
+#include <ac/sd/Init.hpp>
+#include <ac/sd/Model.hpp>
+#include <ac/sd/Instance.hpp>
 
 // // logging
-// #include <ac/jalog/Instance.hpp>
-// #include <ac/jalog/sinks/ColorSink.hpp>
+#include <ac/jalog/Instance.hpp>
+#include <ac/jalog/sinks/ColorSink.hpp>
 
 // // model source directory
-// #include "ac-test-data-whisper-dir.h"
+#include "ac-test-data-sd-dir.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_STATIC
+#include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
+#include "stb_image_write.h"
+
 int main() try {
-//     ac::jalog::Instance jl;
-//     jl.setup().add<ac::jalog::sinks::ColorSink>();
+    ac::jalog::Instance jl;
+    jl.setup().add<ac::jalog::sinks::ColorSink>();
 
-//     std::cout << "Basic example\n";
+    std::cout << "Basic example\n";
 
-//     // initialize the library
-//     ac::whisper::initLibrary();
+    // initialize the library
+    ac::sd::initLibrary();
 
-//     // load model
-//     std::string modelBinFilePath = AC_TEST_DATA_WHISPER_DIR "/whisper-base.en-f16.bin";
-//     ac::whisper::Model model(modelBinFilePath.c_str(), {});
+    // load model
+    std::string modelBinFilePath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
+    ac::sd::Model model(modelBinFilePath.c_str(), {});
 
-//     // // create inference instance
-//     ac::whisper::Instance instance(model, {});
+    // create inference instance
+    ac::sd::Instance instance(model, {});
 
-//     std::string audioFile = AC_TEST_DATA_WHISPER_DIR "/as-she-sat.wav";
-//     std::vector<float> pcmf32 = ac::audio::loadWavF32Mono(audioFile);
+    std::string prompt = "A painting of a beautiful sunset over a calm lake.";
+    std::cout << "Generate image with text: \""<< prompt <<"\": \n\n";
 
-//     std::cout << "Transcribing the audio [" << audioFile << "]: \n\n";
+    // generate the image
+    auto res = instance.textToImage(prompt, "", 256, 256, ac::sd::SampleMethod::EULER_A, 20);
+    auto results = res.get();
 
-//     // transcript the audio
-//     auto res = instance.transcribe(pcmf32);
-//     std::cout << res << std::endl;
+    std::string outputPath = "output.png";
+    size_t posBeforeExt    = outputPath.find_last_of(".");
+    std::string dummy_name = posBeforeExt != std::string::npos ?
+        outputPath.substr(0, posBeforeExt) : outputPath;
+    for (size_t i = 0; i < 1; i++)
+    {
+        std::string final_image_path = i > 0 ?
+        dummy_name + "_" + std::to_string(i + 1) + ".png" :
+        dummy_name + ".png";
+        stbi_write_png(
+            final_image_path.c_str(),
+            results[i].width, results[i].height,
+            results[i].channel, results[i].data,
+            0,
+            ""
+            );
+    }
 
-//     return 0;
+
+    std::cout << res << std::endl;
+
+    return 0;
 }
 catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;

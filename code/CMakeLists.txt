@@ -8,6 +8,7 @@ target_link_libraries(ac-sd
     PRIVATE
         ac::jalog
     PUBLIC
+        stable-diffusion
         splat::splat
         ac::astl
         itlib::itlib

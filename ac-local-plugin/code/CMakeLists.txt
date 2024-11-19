@@ -4,7 +4,7 @@
 add_ac_local_plugin(
     NAME stable-diffusion
     SOURCES
-        LocalWhisper.cpp
+        LocalSD.cpp
     LIBRARIES
         ac::sd
 )
