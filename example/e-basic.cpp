@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-// trivial example of using alpaca-core's whisper inference
+// trivial example of using alpaca-core's stabke-diffusion inference
 
 // stable-diffusion
 #include <ac/sd/Init.hpp>
@@ -64,9 +64,7 @@ int main() try {
             final_image_path.c_str(),
             results[i].width, results[i].height,
             results[i].channel, results[i].data,
-            0,
-            ""
-            );
+            0, "" );
     }
 
 
