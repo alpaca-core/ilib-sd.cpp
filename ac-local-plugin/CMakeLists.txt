@@ -3,6 +3,6 @@
 #
 add_subdirectory(code)
 
-if(AC_WHISPER_BUILD_EXAMPLES)
+if(AC_SD_BUILD_EXAMPLES)
     add_subdirectory(example)
 endif()

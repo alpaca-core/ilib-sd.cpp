@@ -32,7 +32,7 @@ option(AC_SD_BUILD_TESTS "${PROJECT_NAME}: build tests" ${testsDefault})
 option(AC_SD_BUILD_EXAMPLES "${PROJECT_NAME}: build examples" ${examplesDefault})
 mark_as_advanced(AC_SD_BUILD_TESTS AC_SD_BUILD_EXAMPLES)
 
-init_ac_plugin_option(WHISPER)
+init_ac_plugin_option(SD)
 
 #######################################
 # packages

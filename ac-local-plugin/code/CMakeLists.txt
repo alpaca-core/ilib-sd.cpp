@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 #
 add_ac_local_plugin(
-    NAME stable-diffusion
+    NAME sd
     SOURCES
         LocalSD.cpp
     LIBRARIES

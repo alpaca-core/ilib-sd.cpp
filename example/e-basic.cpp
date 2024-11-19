@@ -67,7 +67,6 @@ int main() try {
             0, "" );
     }
 
-
     std::cout << res << std::endl;
 
     return 0;
