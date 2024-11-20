@@ -55,9 +55,14 @@ public:
     };
     std::unique_ptr<ImageResult> textToImage(const TextToImageParams& params);
 
-    std::unique_ptr<ImageResult> imageToImage(std::string_view imagePath);
+    struct ImageToImageParams : TextToImageParams {
+        std::string imagePath = "";
+        float strength = 0.75f;
+    };
+    std::unique_ptr<ImageResult> imageToImage(const ImageToImageParams& params);
 
 private:
+    sd_image_t loadImage(const std::string& path, int& width, int& height, uint8_t*& outControlImgBuffer);
 
     Model& m_model;
     InitParams m_params;

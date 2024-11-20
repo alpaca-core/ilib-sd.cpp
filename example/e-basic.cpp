@@ -43,30 +43,34 @@ int main() try {
     std::string prompt = "A painting of a beautiful sunset over a calm lake.";
     std::cout << "Generate image with text: \""<< prompt <<"\": \n\n";
 
+    std::vector<std::unique_ptr<ac::sd::ImageResult>> results;
+
     // generate the image
-    auto res = instance.textToImage({
+    results.push_back(instance.textToImage({
         .prompt = prompt
-    });
+    }));
 
-    auto results = res.get();
+    std::string inputImage = "/Users/pacominev/Downloads/918-Spyder-mittig.jpg";
+    std::string inputPrompt = "Make the car blue.";
 
-    std::string outputPath = "output.png";
-    size_t posBeforeExt    = outputPath.find_last_of(".");
-    std::string dummy_name = posBeforeExt != std::string::npos ?
-        outputPath.substr(0, posBeforeExt) : outputPath;
-    for (size_t i = 0; i < 1; i++)
-    {
-        std::string final_image_path = i > 0 ?
-        dummy_name + "_" + std::to_string(i + 1) + ".png" :
-        dummy_name + ".png";
+    ac::sd::Instance::ImageToImageParams params;
+    params.imagePath = inputImage;
+    params.prompt = inputPrompt;
+    results.push_back(instance.imageToImage(params));
+
+    for (size_t i = 0; i < results.size(); i++) {
+        if (results[i] == nullptr) {
+            continue;
+        }
+
+        std::string final_image_path = "output_" + std::to_string(i + 1) + ".png";
         stbi_write_png(
             final_image_path.c_str(),
-            results[i].width, results[i].height,
-            results[i].channel, results[i].data,
+            results[i]->width, results[i]->height,
+            results[i]->channel, results[i]->data,
             0, "" );
+        std::cout << "Saved result image to: " << final_image_path << "\n";
     }
-
-    std::cout << res << std::endl;
 
     return 0;
 }

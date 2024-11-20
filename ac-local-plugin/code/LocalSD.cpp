@@ -58,7 +58,29 @@ public:
     }
 
     Dict ImageToImage(const Dict& params) {
-        return params;
+        auto prompt = Dict_optValueAt(params, "prompt", std::string());
+        auto imagePath = Dict_optValueAt(params, "imagePath", std::string());
+        auto negPrompt = Dict_optValueAt(params, "negativePrompt", std::string());
+        auto width = Dict_optValueAt(params, "width", 512);
+        auto height = Dict_optValueAt(params, "height", 512);
+        auto steps = Dict_optValueAt(params, "steps", 20);
+        auto res = m_instance.imageToImage({
+            {
+            .prompt = astl::move(prompt),
+            .negativePrompt = astl::move(negPrompt),
+            .width = int16_t(width),
+            .height = int16_t(height),
+            .sampleSteps = int16_t(steps)
+            },
+            .imagePath = astl::move(imagePath)
+        });
+
+        Dict result;
+        result["width"] = res->width;
+        result["height"] = res->height;
+        result["channel"] = res->channel;
+        result["data"] = ac::Blob(res->data, res->data + res->width * res->height * res->channel);
+        return result;
     }
 
     virtual Dict runOp(std::string_view op, Dict params, ProgressCb) override {

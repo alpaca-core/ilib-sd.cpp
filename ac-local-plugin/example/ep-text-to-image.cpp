@@ -44,24 +44,23 @@ int main() try {
     auto instance = model->createInstance("general", {});
 
     std::string prompt = "A painting of a beautiful sunset over a calm lake.";
-    std::cout << "Generate image with text: \""<< prompt <<"\": \n\n";
 
-    auto result = instance->runOp("textToImage", {{"prompt", prompt}}, {});
+    std::vector<ac::Dict> results;
+    results.push_back(instance->runOp("textToImage", {{"prompt", prompt}}, {}));
+
+    std::string imagePrompt = "Make the car blue.";
+    std::string inputImage = "/Users/pacominev/Downloads/918-Spyder-mittig.jpg";
+
+    results.push_back(instance->runOp("imageToImage", {{"prompt", imagePrompt}, {"imagePath", inputImage}}, {}));
 
     // generate the image
-    std::string outputPath = "output.png";
-    size_t posBeforeExt    = outputPath.find_last_of(".");
-    std::string dummy_name = posBeforeExt != std::string::npos ?
-        outputPath.substr(0, posBeforeExt) : outputPath;
-    for (size_t i = 0; i < 1; i++)
+    for (size_t i = 0; i < results.size(); i++)
     {
-        std::string final_image_path = i > 0 ?
-        dummy_name + "_" + std::to_string(i + 1) + ".png" :
-        dummy_name + ".png";
-        auto width = result["width"].get<int>();
-        auto height = result["height"].get<int>();
-        auto channel = result["channel"].get<int>();
-        auto data = result["data"].get<ac::Blob>();
+        std::string final_image_path = "output_" + std::to_string(i + 1) + ".png";
+        auto width = results[i]["width"].get<int>();
+        auto height = results[i]["height"].get<int>();
+        auto channel = results[i]["channel"].get<int>();
+        auto data = results[i]["data"].get<ac::Blob>();
         stbi_write_png(
             final_image_path.c_str(),
             width, height,
