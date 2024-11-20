@@ -17,14 +17,14 @@ public:
     struct Params {
         std::string clip_l_path = "";
         std::string clip_g_path = "";
-        std::string t5xxl_path = "";
-        std::string diffusion_model_path = "";
-        std::string vae_path = "";
-        std::string taesd_path = "";
-        std::string controlnet_path = "";
-        std::string lora_model_dir = "";
-        std::string embeddings_path = "";
-        std::string stacked_id_embeddings_path = "";
+        std::string t5xxlPath = "";
+        std::string diffusionModelPath = "";
+        std::string vaePath = "";
+        std::string taesdPath = "";
+        std::string controlnetPath = "";
+        std::string loraModelDir = "";
+        std::string embeddingsPath = "";
+        std::string stackedIdEmbeddingsPath = "";
         bool vaeDecodeOnly = false;
         bool vaeTiling = false;
         bool clipOnCpu = false;
