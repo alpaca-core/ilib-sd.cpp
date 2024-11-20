@@ -75,7 +75,7 @@ if(AC_SD_BUILD_TESTS OR AC_SD_BUILD_EXAMPLES)
         NAME ac-test-data-stable-diffusion
         VERSION 1.0.0
         GIT_REPOSITORY https://huggingface.co/alpaca-core/ac-test-data-stable-diffusion
-        GIT_TAG 409c64a7add0b0f8d2d88847cdf5e5171ce6948a
+        GIT_TAG 1c6409643e3756c98b8d117d9de134ffe6ef0218
     )
 endif()
 

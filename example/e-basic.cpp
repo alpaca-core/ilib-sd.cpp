@@ -50,12 +50,12 @@ int main() try {
         .prompt = prompt
     }));
 
-    std::string inputImage = "/Users/pacominev/Downloads/918-Spyder-mittig.jpg";
-    std::string inputPrompt = "Make the car blue.";
+    std::string inputImage = AC_TEST_DATA_SD_DIR "/sunset.png";
+    std::string imagePrompt = "Make the sunset more blue.";
 
     ac::sd::Instance::ImageToImageParams params;
     params.imagePath = inputImage;
-    params.prompt = inputPrompt;
+    params.prompt = imagePrompt;
     results.push_back(instance.imageToImage(params));
 
     for (size_t i = 0; i < results.size(); i++) {

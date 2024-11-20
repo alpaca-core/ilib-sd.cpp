@@ -32,7 +32,7 @@ Instance::Instance(Model& model, InitParams params)
 std::unique_ptr<ImageResult> Instance::textToImage(const TextToImageParams& params) {
     uint8_t* controlImageBuffer = nullptr;
     sd_image_t controlImage;
-    bool willUseControlImage = m_model.params().controlnet_path.size() > 0 && params.controlImagePath.size() > 0;
+    bool willUseControlImage = m_model.params().controlnetPath.size() > 0 && params.controlImagePath.size() > 0;
     if (willUseControlImage) {
         int width = params.width;
         int height = params.height;
@@ -107,7 +107,7 @@ std::unique_ptr<ImageResult> Instance::imageToImage(const ImageToImageParams& pa
 
     uint8_t* controlImageBuffer = nullptr;
     sd_image_t controlImage;
-    bool willUseControlImage = m_model.params().controlnet_path.size() > 0 && params.controlImagePath.size() > 0;
+    bool willUseControlImage = m_model.params().controlnetPath.size() > 0 && params.controlImagePath.size() > 0;
     if (willUseControlImage) {
         // Load control image
         int width = 0;

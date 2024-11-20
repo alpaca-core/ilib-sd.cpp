@@ -48,8 +48,8 @@ int main() try {
     std::vector<ac::Dict> results;
     results.push_back(instance->runOp("textToImage", {{"prompt", prompt}}, {}));
 
-    std::string imagePrompt = "Make the car blue.";
-    std::string inputImage = "/Users/pacominev/Downloads/918-Spyder-mittig.jpg";
+    std::string imagePrompt = "Make the sunset more blue.";
+    std::string inputImage = AC_TEST_DATA_SD_DIR "/sunset.png";
 
     results.push_back(instance->runOp("imageToImage", {{"prompt", imagePrompt}, {"imagePath", inputImage}}, {}));
 
