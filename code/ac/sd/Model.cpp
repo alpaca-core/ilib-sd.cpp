@@ -28,7 +28,7 @@ Model::Model(std::string_view pathToModel, Params params)
         "", //params.stacked_id_embeddings_path.c_str(),
         params.vaeDecodeOnly,
         params.vaeTiling,
-        true,
+        false, // free_params_immediately
         params.nThreads,
         getSdWeightType(params.weightType),
         getSdRngType(params.rngType),
