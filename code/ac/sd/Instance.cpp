@@ -14,6 +14,10 @@
 #include <cassert>
 #include <span>
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_STATIC
+#include <stb_image.h>
+
 namespace ac::sd {
 
 Instance::Instance(Model& model, InitParams params)
@@ -21,39 +25,56 @@ Instance::Instance(Model& model, InitParams params)
     , m_params(astl::move(params))
 {}
 
-std::unique_ptr<ImageResult> Instance::textToImage(
-    std::string_view prompt,
-    std::string_view negativePrompt,
-    // int clip_skip,
-    // float cfg_scale,
-    // float guidance,
-    int width,
-    int height,
-    SampleMethod sampleMethod,
-    int sampleSteps
-    // float control_strength,
-    // float style_strength,
-    // bool normalize_input,
-    // const char* input_id_images_path
-    ) {
+std::unique_ptr<ImageResult> Instance::textToImage(const TextToImageParams& params) {
+
+    uint8_t* controlImageBuffer = nullptr;
+        // only if (modelParams.controlnet_path.size() > 0 && params.control_image_path.size() > 0)
+    sd_image_t controlImage;
+    bool willUseControlImage = m_model.params().controlnet_path.size() > 0 && params.controlImagePath.size() > 0;
+    if (willUseControlImage) {
+        int c = 0;
+        int width = params.width;
+        int height = params.height;
+        controlImageBuffer = stbi_load(params.controlImagePath.c_str(), &width, &height, &c, 3);
+        if (controlImageBuffer == nullptr) {
+            fprintf(stderr, "load image from '%s' failed\n", params.controlImagePath.c_str());
+            return nullptr;
+        }
+        controlImage = sd_image_t{  (uint32_t)params.width,
+                                    (uint32_t)params.height,
+                                    3,
+                                    controlImageBuffer};
+        // if (params.canny_preprocess) {  // apply preprocessor
+        //     control_image->data = preprocess_canny(control_image->data,
+        //                                            control_image->width,
+        //                                            control_image->height,
+        //                                            0.08f,
+        //                                            0.08f,
+        //                                            0.8f,
+        //                                            1.0f,
+        //                                            false);
+        // }
+    }
 
     auto res = txt2img(m_model.context(),
-                    prompt.data(),
-                    negativePrompt.data(),
-                    -1, //params.clip_skip,
-                    7.0f, //params.cfg_scale,
-                    3.5f, //params.guidance,
-                    width,
-                    height,
-                    sample_method_t(sampleMethod),
-                    sampleSteps,
-                    42, //params.seed,
-                    1, //params.batch_count,
-                    nullptr,// control_image, // only if control_image_path is passed as an argument
-                    0.9f, //params.control_strength,
-                    20.f, //params.style_ratio,
-                    false, //params.normalize_input,
-                    "");//params.input_id_images_path.c_str());
+                    params.prompt.c_str(),
+                    params.negativePrompt.c_str(),
+                    params.clip_skip,
+                    params.cfg_scale,
+                    params.guidance,
+                    params.width,
+                    params.height,
+                    getSdSamplerMethod(params.sampleMethod),
+                    params.sampleSteps,
+                    params.seed,
+                    params.batchCount,
+                    willUseControlImage ? &controlImage : nullptr,
+                    params.control_strength,
+                    params.style_ratio,
+                    params.normalize_input,
+                    params.input_id_images_path.c_str());
+
+    free(controlImageBuffer);
 
     std::unique_ptr<ImageResult> imRes = std::make_unique<ImageResult>();
     imRes->width = res->width;

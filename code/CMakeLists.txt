@@ -23,4 +23,6 @@ target_sources(ac-sd PRIVATE
     ac/sd/Model.cpp
     ac/sd/Instance.hpp
     ac/sd/Instance.cpp
+    ac/sd/utils.hpp
+    ac/sd/utils.cpp
 )

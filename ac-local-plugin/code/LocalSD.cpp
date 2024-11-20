@@ -41,7 +41,14 @@ public:
         auto width = Dict_optValueAt(params, "width", 256);
         auto height = Dict_optValueAt(params, "height", 256);
         auto steps = Dict_optValueAt(params, "steps", 20);
-        auto res = m_instance.textToImage(prompt, negPrompt, width, height, ac::sd::SampleMethod::EULER_A, steps);
+        auto res = m_instance.textToImage({
+            .prompt = astl::move(prompt),
+            .negativePrompt = astl::move(negPrompt),
+            .width = int16_t(width),
+            .height = int16_t(height),
+            .sampleSteps = int16_t(steps),
+        });
+
         Dict result;
         result["width"] = res->width;
         result["height"] = res->height;

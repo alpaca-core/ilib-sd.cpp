@@ -3,6 +3,7 @@
 //
 #pragma once
 #include "export.h"
+#include "utils.hpp"
 
 #include <astl/mem_ext.hpp>
 
@@ -12,21 +13,6 @@
 
 namespace ac::sd {
 class Model;
-
-enum SampleMethod {
-    EULER_A,
-    EULER,
-    HEUN,
-    DPM2,
-    DPMPP2S_A,
-    DPMPP2M,
-    DPMPP2Mv2,
-    IPNDM,
-    IPNDM_V,
-    LCM,
-
-    COUNT
-};
 
 struct ImageResult {
     uint32_t width = 0;
@@ -49,21 +35,26 @@ public:
     Instance(Model& model, InitParams params);
     ~Instance() = default;
 
-    std::unique_ptr<ImageResult> textToImage(
-        std::string_view prompt,
-        std::string_view negativePrompt,
-        // int clip_skip,
-        // float cfg_scale,
-        // float guidance,
-        int width,
-        int height,
-        SampleMethod sampleMethod,
-        int sampleSteps
-        // float control_strength,
-        // float style_strength,
-        // bool normalize_input,
-        // const char* input_id_images_path
-        );
+    struct TextToImageParams {
+        std::string prompt = "";
+        std::string negativePrompt = "";
+        int16_t clip_skip = -1;
+        float cfg_scale = 7.0f;
+        float guidance = 3.5f;
+        int16_t width = 512;
+        int16_t height = 512;
+        SampleMethod sampleMethod = SampleMethod::EULER_A;
+        int16_t sampleSteps = 20;
+        int16_t batchCount = 1;
+        int64_t seed = 42;
+        std::string controlImagePath = "";
+        float control_strength = 0.9f;
+        float style_ratio = 20.0f;
+        bool normalize_input = false;
+        std::string input_id_images_path = "";
+    };
+    std::unique_ptr<ImageResult> textToImage(const TextToImageParams& params);
+
     std::unique_ptr<ImageResult> imageToImage(std::string_view imagePath);
 
 private:

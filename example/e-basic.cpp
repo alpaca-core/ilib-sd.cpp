@@ -20,10 +20,6 @@
 #include <string>
 #include <vector>
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_STATIC
-#include "stb_image.h"
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_STATIC
 #include "stb_image_write.h"
@@ -48,7 +44,10 @@ int main() try {
     std::cout << "Generate image with text: \""<< prompt <<"\": \n\n";
 
     // generate the image
-    auto res = instance.textToImage(prompt, "", 256, 256, ac::sd::SampleMethod::EULER_A, 20);
+    auto res = instance.textToImage({
+        .prompt = prompt
+    });
+
     auto results = res.get();
 
     std::string outputPath = "output.png";

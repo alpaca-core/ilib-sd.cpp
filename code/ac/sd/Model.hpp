@@ -3,8 +3,10 @@
 //
 #pragma once
 #include "export.h"
+#include "utils.hpp"
 
 #include <astl/mem_ext.hpp>
+#include <string>
 
 struct sd_ctx_t;
 
@@ -13,26 +15,28 @@ namespace ac::sd {
 class AC_SD_EXPORT Model {
 public:
     struct Params {
-        enum Schedule {
-            DEFAULT,
-            DISCRETE,
-            KARRAS,
-            EXPONENTIAL,
-            AYS,
-            GITS,
-
-            COUNT
-        };
-        bool gpu = true; // try to load data on gpu
-        bool VaeDecodeOnly = false;
+        std::string clip_l_path = "";
+        std::string clip_g_path = "";
+        std::string t5xxl_path = "";
+        std::string diffusion_model_path = "";
+        std::string vae_path = "";
+        std::string taesd_path = "";
+        std::string controlnet_path = "";
+        std::string lora_model_dir = "";
+        std::string embeddings_path = "";
+        std::string stacked_id_embeddings_path = "";
+        bool vaeDecodeOnly = false;
         bool vaeTiling = false;
         bool clipOnCpu = false;
         bool controlNetCpu = false;
         bool vaeOnCpu = false;
-        Schedule schedule = DEFAULT;
+        uint16_t nThreads = 16;
+        Schedule schedule = Schedule::DEFAULT;
+        RNGType rngType = RNGType::CUDA_RNG;
+        WeightType weightType = WeightType::AC_TYPE_COUNT;
     };
 
-    Model(const char* pathToModel, Params params);
+    Model(std::string_view pathToModel, Params params);
     ~Model();
 
     sd_ctx_t* context() const noexcept { return m_ctx; }
