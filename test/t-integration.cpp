@@ -1,57 +1,95 @@
 // Copyright (c) Alpaca Core
 // SPDX-License-Identifier: MIT
 //
-// #include <ac/whisper/Init.hpp>
-// #include <ac/whisper/Model.hpp>
-// #include <ac/whisper/Instance.hpp>
+#include <ac/sd/Init.hpp>
+#include <ac/sd/Model.hpp>
+#include <ac/sd/Instance.hpp>
 
-// #include <ac-audio.hpp>
+#include <doctest/doctest.h>
 
-// #include <doctest/doctest.h>
+#include "ac-test-data-sd-dir.h"
 
-// #include "ac-test-data-sd-dir.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
+#include "stb_image_write.h"
 
+#include <iostream>
 
-// struct GlobalFixture {
-//     GlobalFixture() {
-//         ac::whisper::initLibrary();
-//     }
-// };
+struct GlobalFixture {
+    GlobalFixture() {
+        ac::sd::initLibrary();
+    }
+};
 
-// GlobalFixture globalFixture;
+GlobalFixture globalFixture;
 
-// const char* Base_en_f16 = AC_TEST_DATA_WHISPER_DIR "/whisper-base.en-f16.bin";
+std::string sd_v1_4_modelPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
 
-// #include <iostream>
+void saveImage(ac::sd::ImageResult* im, std::string fileName) {
+    stbi_write_png(
+        fileName.c_str(),
+        im->width, im->height,
+        im->channel, im->data,
+        0, "" );
+    std::cout << "Saved result image to: " << fileName << "\n";
+};
 
-// TEST_CASE("inference") {
-//     ac::whisper::Model model(Base_en_f16, {});
-//     REQUIRE(!!model.context());
+// We'll test that the output is neither all black nor all white
+// since it's hard to predict the exact output on all platforms
+// due to floating point differences
+TEST_CASE("inference") {
+    ac::sd::Model model(sd_v1_4_modelPath, {});
+    REQUIRE(!!model.context());
 
-//     auto& params = model.params();
-//     CHECK(params.gpu);
+    ac::sd::Instance instance(model, {});
 
-//     // general inference
-//     {
-//         ac::whisper::Instance inst(model, {});
+    auto checkImage = [](uint8_t* data, uint32_t width, uint32_t height, uint32_t channels, float margin) {
+        float red = 0;
+        float green = 0;
+        float blue = 0;
 
-//         auto result = inst.transcribe(std::span<float>());
-//         CHECK(result == "");
+        for (size_t i = 0; i < width; i++) {
+            for (size_t j = 0; j < height; j++) {
+                for (size_t c = 0; c < channels; c++) {
+                    float val = data[i*j*channels + c] / 255.f;
+                    switch (c) {
+                        case 0: red += val;break;
+                        case 1: green += val;break;
+                        case 2: blue += val;break;
+                        default:
+                            assert("Not valid component");
+                            break;
+                    }
+                }
+            }
+        }
 
-//         std::string prenticeHallText(
-//             " Yes, I like it.\n "
-//             "Prentice Hall always delivers good seminars.\n "
-//             "All of its speakers are very well known and also very knowledgeable in the subject matter.\n "
-//             "Did you attend the seminar on Leadership in Long Beach last January?\n");
+        red /= width * height;
+        green /= width * height;
+        blue /= width * height;
 
-//         std::string audioFilePath = AC_TEST_DATA_WHISPER_DIR "/prentice-hall.wav";
-//         auto pcmf32 = ac::audio::loadWavF32Mono(audioFilePath);
+        return red > margin && red < 1.0f - margin &&
+               green > margin && green < 1.0f - margin &&
+               blue > margin && blue < 1.0f - margin;
+    };
 
-//         CHECK(pcmf32.size() > 0);
+    std::string inputImage = "test_text2img.png";
+    // text2img
+    {
+        auto result = instance.textToImage({
+            .prompt = "A gray background."
+        });
 
-//         result = inst.transcribe(pcmf32);
+        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2));
+        saveImage(result.get(), inputImage);
+    }
 
-//         CHECK(result == prenticeHallText);
-
-//     }
-// }
+    // img2img
+    {
+        ac::sd::Instance::ImageToImageParams params;
+        params.imagePath = inputImage;
+        params.prompt = "add more blue to background color";
+        auto  result = instance.imageToImage(params);
+        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2));
+    }
+}
