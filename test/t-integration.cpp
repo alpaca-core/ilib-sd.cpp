@@ -34,6 +34,36 @@ void saveImage(ac::sd::ImageResult* im, std::string fileName) {
     std::cout << "Saved result image to: " << fileName << "\n";
 };
 
+bool checkImage(uint8_t* data, uint32_t width, uint32_t height, uint32_t channels, float margin) {
+    float red = 0;
+    float green = 0;
+    float blue = 0;
+
+    for (size_t i = 0; i < width; i++) {
+        for (size_t j = 0; j < height; j++) {
+            for (size_t c = 0; c < channels; c++) {
+                float val = data[i*j*channels + c] / 255.f;
+                switch (c) {
+                    case 0: red += val;break;
+                    case 1: green += val;break;
+                    case 2: blue += val;break;
+                    default:
+                        assert("Not valid component");
+                        break;
+                }
+            }
+        }
+    }
+
+    red /= width * height;
+    green /= width * height;
+    blue /= width * height;
+
+    return red > margin && red < 1.0f - margin &&
+            green > margin && green < 1.0f - margin &&
+            blue > margin && blue < 1.0f - margin;
+}
+
 // We'll test that the output is neither all black nor all white
 // since it's hard to predict the exact output on all platforms
 // due to floating point differences
@@ -42,36 +72,6 @@ TEST_CASE("inference") {
     REQUIRE(!!model.context());
 
     ac::sd::Instance instance(model, {});
-
-    auto checkImage = [](uint8_t* data, uint32_t width, uint32_t height, uint32_t channels, float margin) {
-        float red = 0;
-        float green = 0;
-        float blue = 0;
-
-        for (size_t i = 0; i < width; i++) {
-            for (size_t j = 0; j < height; j++) {
-                for (size_t c = 0; c < channels; c++) {
-                    float val = data[i*j*channels + c] / 255.f;
-                    switch (c) {
-                        case 0: red += val;break;
-                        case 1: green += val;break;
-                        case 2: blue += val;break;
-                        default:
-                            assert("Not valid component");
-                            break;
-                    }
-                }
-            }
-        }
-
-        red /= width * height;
-        green /= width * height;
-        blue /= width * height;
-
-        return red > margin && red < 1.0f - margin &&
-               green > margin && green < 1.0f - margin &&
-               blue > margin && blue < 1.0f - margin;
-    };
 
     std::string inputImage = "test_text2img.png";
     // text2img
