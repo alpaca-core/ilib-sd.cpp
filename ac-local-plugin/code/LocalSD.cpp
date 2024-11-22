@@ -127,6 +127,13 @@ public:
         };
         return i;
     }
+
+        /// Check if the model can be loaded
+    virtual bool canLoadModel(const ModelDesc& desc, const Dict& /*params*/) const noexcept override {
+         return desc.inferenceType == "stable-diffusion";
+    }
+
+
     virtual ModelPtr loadModel(ModelDesc desc, Dict /*params*/, ProgressCb /*progressCb*/) override {
         if (desc.assets.size() != 1) throw_ex{} << "sd: expected exactly one local asset";
         auto& bin = desc.assets.front().path;
