@@ -66,6 +66,14 @@
     },
 
     {
+      "name": "release-mono-comp",
+      "inherits": ["base-release", "mono", "component"],
+      "cacheVariables": {
+        "ac-local_ROOT": "${sourceDir}/../ac-local/out/build/release"
+      }
+    },
+
+    {
       "name": "gcc",
       "hidden": true,
       "cacheVariables": {
