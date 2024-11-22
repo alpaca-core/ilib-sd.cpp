@@ -11,7 +11,7 @@ add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE ${stb_SOURCE_DIR})
 
 function(add_sd_plugin_example name)
-    set(tgt example-aclp-whisper-${name})
+    set(tgt example-aclp-sd-${name})
     add_executable(${tgt} ep-${name}.cpp)
     target_link_libraries(${tgt} PRIVATE
         ac::local

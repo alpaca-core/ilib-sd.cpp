@@ -6,4 +6,4 @@
 
 namespace ac::sd {
 AC_SD_EXPORT void initLibrary();
-} // namespace ac::whisper
+} // namespace ac::sd
