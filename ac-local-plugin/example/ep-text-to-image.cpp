@@ -3,7 +3,7 @@
 //
 #include <ac/local/Model.hpp>
 #include <ac/local/Instance.hpp>
-#include <ac/local/ModelLoaderRegistry.hpp>
+#include <ac/local/ModelAssetDesc.hpp>
 #include <ac/local/Lib.hpp>
 
 #include <ac/jalog/Instance.hpp>
@@ -30,9 +30,9 @@ int main() try {
 
     ac::local::Lib::loadPlugin(ACLP_sd_PLUGIN_FILE);;
 
-    auto model = ac::local::Lib::modelLoaderRegistry().createModel(
+    auto model = ac::local::Lib::loadModel(
         {
-            .inferenceType = "stable-diffusion",
+            .type = "sd.cpp",
             .assets = {
                 {.path = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt"}
             }

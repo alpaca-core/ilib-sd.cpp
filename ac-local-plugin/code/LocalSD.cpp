@@ -122,19 +122,18 @@ public:
     virtual const Info& info() const noexcept override {
         static Info i = {
             .name = "ac stable-diffusion.cpp",
-            .vendor = "Alpaca Core",
-            .inferenceSchemaTypes = {"stable-diffusion"},
+            .vendor = "Alpaca Core"
         };
         return i;
     }
 
         /// Check if the model can be loaded
-    virtual bool canLoadModel(const ModelDesc& desc, const Dict& /*params*/) const noexcept override {
-         return desc.inferenceType == "stable-diffusion";
+    virtual bool canLoadModel(const ModelAssetDesc& desc, const Dict& /*params*/) const noexcept override {
+         return desc.type == "sd.cpp";
     }
 
 
-    virtual ModelPtr loadModel(ModelDesc desc, Dict /*params*/, ProgressCb /*progressCb*/) override {
+    virtual ModelPtr loadModel(ModelAssetDesc desc, Dict /*params*/, ProgressCb /*progressCb*/) override {
         if (desc.assets.size() != 1) throw_ex{} << "sd: expected exactly one local asset";
         auto& bin = desc.assets.front().path;
         sd::Model::Params modelParams;
