@@ -65,7 +65,12 @@ std::unique_ptr<ImageResult> Instance::textToImage(const TextToImageParams& para
                     params.control_strength,
                     params.style_ratio,
                     params.normalize_input,
-                    params.input_id_images_path.c_str());
+                    params.input_id_images_path.c_str(),
+                    nullptr, // TODO: add support for skip_layers #10
+                    0,
+                    0,
+                    0.01,
+                    0.2);
 
     free(controlImageBuffer);
 
@@ -143,7 +148,12 @@ std::unique_ptr<ImageResult> Instance::imageToImage(const ImageToImageParams& pa
                         params.control_strength,
                         params.style_ratio,
                         params.normalize_input,
-                        params.input_id_images_path.c_str());
+                        params.input_id_images_path.c_str(),
+                        nullptr, // TODO: add support for skip_layers #10
+                        0,
+                        0,
+                        0.01,
+                        0.2);
 
     free(controlImageBuffer);
     std::unique_ptr<ImageResult> imRes = std::make_unique<ImageResult>();

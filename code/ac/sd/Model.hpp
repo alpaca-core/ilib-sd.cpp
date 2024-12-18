@@ -30,6 +30,7 @@ public:
         bool clipOnCpu = false;
         bool controlNetCpu = false;
         bool vaeOnCpu = false;
+        bool diffusionFlashAttn = false;
         uint16_t nThreads = 16;
         Schedule schedule = Schedule::DEFAULT;
         RNGType rngType = RNGType::CUDA_RNG;

@@ -35,7 +35,8 @@ Model::Model(std::string_view pathToModel, Params params)
         getSdSchedule(params.schedule),
         params.clipOnCpu,
         params.controlNetCpu,
-        params.vaeOnCpu);
+        params.vaeOnCpu,
+        params.diffusionFlashAttn);
 
     if (!m_ctx) {
         throw std::runtime_error("Failed to load model");
