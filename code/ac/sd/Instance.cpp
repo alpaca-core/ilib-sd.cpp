@@ -130,8 +130,17 @@ std::unique_ptr<ImageResult> Instance::imageToImage(const ImageToImageParams& pa
         // }
     }
 
+    // TODO: Support mask image passed from params #11
+    std::vector<uint8_t> arr(params.width * params.height, 255);
+    uint8_t* mask_image_buffer = arr.data();
+    sd_image_t mask_image = {(uint32_t)params.width,
+                            (uint32_t)params.height,
+                            1,
+                            mask_image_buffer};
+
     auto res = img2img(m_model.context(),
                         inputImage,
+                        mask_image,
                         params.prompt.c_str(),
                         params.negativePrompt.c_str(),
                         params.clip_skip,
