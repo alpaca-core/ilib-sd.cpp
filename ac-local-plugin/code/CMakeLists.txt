@@ -7,4 +7,5 @@ add_ac_local_plugin(
         LocalSD.cpp
     LIBRARIES
         ac::sd
+        ac::sd.cpp-schema
 )

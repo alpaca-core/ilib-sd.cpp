@@ -1,0 +1,146 @@
+{
+  "id": "stable-diffusion.cpp",
+  "description": "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp",
+  "params": {
+    "type": "null"
+  },
+  "instances": {
+    "general": {
+      "description": "General instance",
+      "params": {
+        "type": "null"
+      },
+      "ops": {
+        "textToImage": {
+          "description": "Run the stable-diffusion.cpp inference and produce image from text",
+          "params": {
+            "type": "object",
+            "properties": {
+              "prompt": {
+                "type": "string",
+                "description": "Image description text"
+              },
+              "negativePrompt": {
+                "type": "string",
+                "description": "Negative image description text",
+                "default": ""
+              },
+              "width": {
+                "type": "integer",
+                "description": "Image width",
+                "default": 256
+              },
+              "height": {
+                "type": "integer",
+                "description": "Image height",
+                "default": 256
+              },
+              "steps": {
+                "type": "integer",
+                "description": "Number of steps",
+                "default": 20
+              }
+            },
+            "required": [
+              "prompt"
+            ]
+          },
+          "return": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer",
+                "description": "Image width"
+              },
+              "height": {
+                "type": "integer",
+                "description": "Image height"
+              },
+              "channel": {
+                "type": "integer",
+                "description": "Number of channels"
+              },
+              "data": {
+                "type": "binary",
+                "description": "Image data"
+              }
+            },
+            "required": [
+              "width",
+              "height",
+              "channel",
+              "data"
+            ]
+          }
+        },
+        "imageToImage": {
+          "description": "Run the stable-diffusion.cpp inference and produce image from image and text",
+          "params": {
+            "type": "object",
+            "properties": {
+              "prompt": {
+                "type": "string",
+                "description": "Image description text"
+              },
+              "imagePath": {
+                "type": "string",
+                "description": "Path to the image"
+              },
+              "negativePrompt": {
+                "type": "string",
+                "description": "Negative image description text",
+                "default": ""
+              },
+              "width": {
+                "type": "integer",
+                "description": "Image width",
+                "default": 256
+              },
+              "height": {
+                "type": "integer",
+                "description": "Image height",
+                "default": 256
+              },
+              "steps": {
+                "type": "integer",
+                "description": "Number of steps",
+                "default": 20
+              }
+            },
+            "required": [
+              "prompt",
+              "imagePath"
+            ]
+          },
+          "return": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer",
+                "description": "Image width"
+              },
+              "height": {
+                "type": "integer",
+                "description": "Image height"
+              },
+              "channel": {
+                "type": "integer",
+                "description": "Number of channels"
+              },
+              "data": {
+                "type": "binary",
+                "description": "Image data"
+              }
+            },
+            "required": [
+              "width",
+              "height",
+              "channel",
+              "data"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
