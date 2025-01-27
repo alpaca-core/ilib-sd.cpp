@@ -8,7 +8,7 @@
 #include <string>
 #include <tuple>
 
-namespace ac::local::schema {
+namespace ac::schema {
 
 struct SDCppInterface {
     static inline constexpr std::string_view id = "stable-diffusion.cpp";
@@ -93,7 +93,7 @@ struct SDCppInterface {
     using Ops = std::tuple<OpTextToImage, OpImageToImage>;
 };
 
-struct SDCppLoader {
+struct SDCppProvider {
     static inline constexpr std::string_view id = "stable-diffusion.cpp";
     static inline constexpr std::string_view description = "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp";
 

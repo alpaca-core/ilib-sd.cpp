@@ -7,4 +7,5 @@ target_sources(ac-sd.cpp-schema-gen PRIVATE
 )
 target_link_libraries(ac-sd.cpp-schema-gen PRIVATE
     ac::sd.cpp-schema
+    ac::local
 )
