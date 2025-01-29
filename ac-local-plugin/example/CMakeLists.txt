@@ -18,6 +18,7 @@ function(add_sd_plugin_example name)
         ac::jalog
         ac-test-data::sd
         aclp::sd-info
+        ac::sd.cpp-schema
         stb
     )
     set_target_properties(${tgt} PROPERTIES FOLDER example)

@@ -10,13 +10,89 @@
 
 namespace ac::schema {
 
-struct SDCppInterface {
-    static inline constexpr std::string_view id = "stable-diffusion.cpp";
-    static inline constexpr std::string_view description = "ilib-sd.cpp-specific interface";
+inline namespace sd {
+
+struct StateInitial {
+    static constexpr auto id = "initial";
+    static constexpr auto desc = "Initial state";
+
+    struct OpLoadModel {
+        static constexpr auto id = "load-model";
+        static constexpr auto desc = "Load the whisper.cpp model";
+
+        struct Params{
+            Field<std::string> binPath = std::nullopt;
+            Field<std::string> clip_l_path = Default("");
+            Field<std::string> clip_g_path = Default("");
+            Field<std::string> t5xxlPath = Default("");
+            Field<std::string> diffusionModelPath = Default("");
+            Field<std::string> vaePath = Default("");
+            Field<std::string> taesdPath = Default("");
+            Field<std::string> controlnetPath = Default("");
+            Field<std::string> loraModelDir = Default("");
+            Field<std::string> embeddingsPath = Default("");
+            Field<std::string> stackedIdEmbeddingsPath = Default("");
+            Field<bool> vaeDecodeOnly = Default(false);
+            Field<bool> vaeTiling = Default(false);
+            Field<bool> clipOnCpu = Default(false);
+            Field<bool> controlNetCpu = Default(false);
+            Field<bool> vaeOnCpu = Default(false);
+            Field<bool> diffusionFlashAttn = Default(false);
+
+            template <typename Visitor>
+            void visitFields(Visitor& v) {
+                v(binPath, "binPath", "Path to the file with model data.");
+                v(clip_l_path, "clip_l_path", "Path to the clip_l model");
+                v(clip_g_path, "clip_g_path", "Path to the clip_g model");
+                v(t5xxlPath, "t5xxlPath", "Path to the t5xxl model");
+                v(diffusionModelPath, "diffusionModelPath", "Path to the diffusion model");
+                v(vaePath, "vaePath", "Path to the vae model");
+                v(taesdPath, "taesdPath", "Path to the taesd model");
+                v(controlnetPath, "controlnetPath", "Path to the controlnet model");
+                v(loraModelDir, "loraModelDir", "Path to the directory of lora adapters.");
+                v(embeddingsPath, "embeddingsPath", "Path to the embeddings model");
+                v(stackedIdEmbeddingsPath, "stackedIdEmbeddingsPath", "Path to the stackedIdEmbeddings model");
+                v(vaeDecodeOnly, "vaeDecodeOnly", "Whether to use only vae for decoding");
+                v(vaeTiling, "vaeTiling", "Whether to use tiling for vae");
+                v(clipOnCpu, "clipOnCpu", "Whether to use CPU for clip");
+                v(controlNetCpu, "controlNetCpu", "Whether to use CPU for controlnet");
+                v(vaeOnCpu, "vaeOnCpu", "Whether to use CPU for vae");
+                v(diffusionFlashAttn, "diffusionFlashAttn", "Whether to use flash attention for diffusion");
+            }
+        };
+
+        using Return = nullptr_t;
+    };
+
+    using Ops = std::tuple<OpLoadModel>;
+    using Ins = std::tuple<>;
+    using Outs = std::tuple<>;
+};
+
+struct StateModelLoaded {
+    static constexpr auto id = "model-loaded";
+    static constexpr auto desc = "Model loaded state";
+
+    struct OpStartInstance {
+        static constexpr auto id = "start-instance";
+        static constexpr auto desc = "Start a new instance of the sd.cpp model";
+
+        using Params = nullptr_t;
+        using Return = nullptr_t;
+    };
+
+    using Ops = std::tuple<OpStartInstance>;
+    using Ins = std::tuple<>;
+    using Outs = std::tuple<>;
+};
+
+struct StateInstance {
+    static constexpr auto id = "instance";
+    static constexpr auto desc = "Instance state";
 
     struct OpTextToImage {
         static inline constexpr std::string_view id = "textToImage";
-        static inline constexpr std::string_view description = "Run the stable-diffusion.cpp inference and produce image from text";
+        static inline constexpr std::string_view desc = "Run the stable-diffusion.cpp inference and produce image from text";
 
         struct Params {
             Field<std::string> prompt;
@@ -53,7 +129,7 @@ struct SDCppInterface {
 
         struct OpImageToImage {
         static inline constexpr std::string_view id = "imageToImage";
-        static inline constexpr std::string_view description = "Run the stable-diffusion.cpp inference and produce image from image and text";
+        static inline constexpr std::string_view desc = "Run the stable-diffusion.cpp inference and produce image from image and text";
 
         struct Params {
             Field<std::string> prompt;
@@ -91,24 +167,17 @@ struct SDCppInterface {
     };
 
     using Ops = std::tuple<OpTextToImage, OpImageToImage>;
+    using Ins = std::tuple<>;
+    using Outs = std::tuple<>;
 };
 
-struct SDCppProvider {
+struct Interface {
     static inline constexpr std::string_view id = "stable-diffusion.cpp";
-    static inline constexpr std::string_view description = "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp";
+    static inline constexpr std::string_view desc = "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp";
 
-    using Params = nullptr_t;
-
-    struct InstanceGeneral {
-        static inline constexpr std::string_view id = "general";
-        static inline constexpr std::string_view description = "General instance";
-
-        using Params = nullptr_t;
-
-        using Interfaces = std::tuple<SDCppInterface>;
-    };
-
-    using Instances = std::tuple<InstanceGeneral>;
+    using States = std::tuple<StateInitial, StateModelLoaded, StateInstance>;
 };
+
+} // namespace sd
 
 } // namespace ac::local::schema

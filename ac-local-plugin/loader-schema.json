@@ -1,15 +1,130 @@
 {
   "id": "stable-diffusion.cpp",
   "description": "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp",
-  "params": {
-    "type": "null"
-  },
-  "instances": {
-    "general": {
-      "description": "General instance",
-      "params": {
-        "type": "null"
+  "states": [
+    {
+      "id": "initial",
+      "description": "Initial state",
+      "ops": {
+        "load-model": {
+          "description": "Load the whisper.cpp model",
+          "params": {
+            "type": "object",
+            "properties": {
+              "binPath": {
+                "type": "string",
+                "description": "Path to the file with model data."
+              },
+              "clip_l_path": {
+                "type": "string",
+                "description": "Path to the clip_l model",
+                "default": ""
+              },
+              "clip_g_path": {
+                "type": "string",
+                "description": "Path to the clip_g model",
+                "default": ""
+              },
+              "t5xxlPath": {
+                "type": "string",
+                "description": "Path to the t5xxl model",
+                "default": ""
+              },
+              "diffusionModelPath": {
+                "type": "string",
+                "description": "Path to the diffusion model",
+                "default": ""
+              },
+              "vaePath": {
+                "type": "string",
+                "description": "Path to the vae model",
+                "default": ""
+              },
+              "taesdPath": {
+                "type": "string",
+                "description": "Path to the taesd model",
+                "default": ""
+              },
+              "controlnetPath": {
+                "type": "string",
+                "description": "Path to the controlnet model",
+                "default": ""
+              },
+              "loraModelDir": {
+                "type": "string",
+                "description": "Path to the directory of lora adapters.",
+                "default": ""
+              },
+              "embeddingsPath": {
+                "type": "string",
+                "description": "Path to the embeddings model",
+                "default": ""
+              },
+              "stackedIdEmbeddingsPath": {
+                "type": "string",
+                "description": "Path to the stackedIdEmbeddings model",
+                "default": ""
+              },
+              "vaeDecodeOnly": {
+                "type": "integer",
+                "description": "Whether to use only vae for decoding",
+                "default": false
+              },
+              "vaeTiling": {
+                "type": "integer",
+                "description": "Whether to use tiling for vae",
+                "default": false
+              },
+              "clipOnCpu": {
+                "type": "integer",
+                "description": "Whether to use CPU for clip",
+                "default": false
+              },
+              "controlNetCpu": {
+                "type": "integer",
+                "description": "Whether to use CPU for controlnet",
+                "default": false
+              },
+              "vaeOnCpu": {
+                "type": "integer",
+                "description": "Whether to use CPU for vae",
+                "default": false
+              },
+              "diffusionFlashAttn": {
+                "type": "integer",
+                "description": "Whether to use flash attention for diffusion",
+                "default": false
+              }
+            }
+          },
+          "return": {
+            "type": "null"
+          }
+        }
       },
+      "ins": null,
+      "outs": null
+    },
+    {
+      "id": "model-loaded",
+      "description": "Model loaded state",
+      "ops": {
+        "start-instance": {
+          "description": "Start a new instance of the sd.cpp model",
+          "params": {
+            "type": "null"
+          },
+          "return": {
+            "type": "null"
+          }
+        }
+      },
+      "ins": null,
+      "outs": null
+    },
+    {
+      "id": "instance",
+      "description": "Instance state",
       "ops": {
         "textToImage": {
           "description": "Run the stable-diffusion.cpp inference and produce image from text",
@@ -140,7 +255,9 @@
             ]
           }
         }
-      }
+      },
+      "ins": null,
+      "outs": null
     }
-  }
+  ]
 }

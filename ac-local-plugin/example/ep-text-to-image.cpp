@@ -1,10 +1,15 @@
 // Copyright (c) Alpaca Core
 // SPDX-License-Identifier: MIT
 //
-#include <ac/local/Model.hpp>
-#include <ac/local/Instance.hpp>
-#include <ac/local/ModelAssetDesc.hpp>
 #include <ac/local/Lib.hpp>
+
+#include <ac/frameio/local/LocalIoRunner.hpp>
+#include <ac/frameio/local/BlockingIo.hpp>
+
+#include <ac/schema/BlockingIoHelper.hpp>
+#include <ac/schema/FrameHelpers.hpp>
+
+#include <ac/schema/SDCpp.hpp>
 
 #include <ac/jalog/Instance.hpp>
 #include <ac/jalog/sinks/DefaultSink.hpp>
@@ -24,43 +29,66 @@
 #define STB_IMAGE_WRITE_STATIC
 #include "stb_image_write.h"
 
+namespace schema = ac::schema::sd;
+
 int main() try {
     ac::jalog::Instance jl;
     jl.setup().add<ac::jalog::sinks::DefaultSink>();
 
     ac::local::Lib::loadPlugin(ACLP_sd_PLUGIN_FILE);;
 
-    auto model = ac::local::Lib::loadModel(
-        {
-            .type = "sd.cpp",
-            .assets = {
-                {.path = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt"}
-            }
-        },
-        {}, // no params
-        {} // empty progress callback
-    );
+    ac::frameio::LocalIoRunner io;
+    ac::schema::BlockingIoHelper sd(io.connectBlocking(ac::local::Lib::createSessionHandler("stable-diffusion.cpp")));
 
-    auto instance = model->createInstance("general", {});
+    sd.expectState<schema::StateInitial>();
+    sd.call<schema::StateInitial::OpLoadModel>({
+        .binPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt"
+    });
+    sd.expectState<schema::StateModelLoaded>();
 
+    sd.call<schema::StateModelLoaded::OpStartInstance>({});
+    sd.expectState<schema::StateInstance>();
+
+    struct ImageResult {
+        int width;
+        int height;
+        int channel;
+        std::vector<uint8_t> data;
+    };
+
+    std::vector<ImageResult> results;
     std::string prompt = "A painting of a beautiful sunset over a calm lake.";
 
-    std::vector<ac::Dict> results;
-    results.push_back(instance->runOp("textToImage", {{"prompt", prompt}}, {}));
+    auto result = sd.call<schema::StateInstance::OpTextToImage>({
+        .prompt = prompt
+    });
+
+    results.push_back({.width = result.width.value(),
+                       .height = result.height.value(),
+                       .channel = result.channel.value(),
+                       .data = std::move(result.data.value())});
 
     std::string imagePrompt = "Make the sunset more blue.";
     std::string inputImage = AC_TEST_DATA_SD_DIR "/sunset.png";
 
-    results.push_back(instance->runOp("imageToImage", {{"prompt", imagePrompt}, {"imagePath", inputImage}}, {}));
+    auto imResult = sd.call<schema::StateInstance::OpImageToImage>({
+        .prompt = prompt,
+        .imagePath = inputImage
+    });
+
+    results.push_back({.width = imResult.width.value(),
+                        .height = imResult.height.value(),
+                        .channel = imResult.channel.value(),
+                        .data = std::move(imResult.data.value())});
 
     // generate the image
     for (size_t i = 0; i < results.size(); i++)
     {
         std::string final_image_path = "output_" + std::to_string(i + 1) + ".png";
-        auto width = results[i]["width"].get<int>();
-        auto height = results[i]["height"].get<int>();
-        auto channel = results[i]["channel"].get<int>();
-        auto data = results[i]["data"].get<ac::Blob>();
+        auto width = results[i].width;
+        auto height = results[i].height;
+        auto channel = results[i].channel;
+        auto data = results[i].data;
         stbi_write_png(
             final_image_path.c_str(),
             width, height,
