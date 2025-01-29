@@ -205,15 +205,6 @@ public:
         return i;
     }
 
-    /// Check if the model can be loaded
-    virtual bool canLoadModel(const ModelAssetDesc& desc, const Dict& /*params*/) const noexcept override {
-         return desc.type == "sd.cpp";
-    }
-
-    virtual ModelPtr loadModel(ModelAssetDesc /*desc*/, Dict /*params*/, ProgressCb /*progressCb*/) override {
-        return {};
-    }
-
     virtual frameio::SessionHandlerPtr createSessionHandler(std::string_view) override {
         return CoroSessionHandler::create(SD_runSession());
     }
