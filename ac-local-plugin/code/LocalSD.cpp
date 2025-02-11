@@ -23,6 +23,8 @@
 #include "aclp-sd-version.h"
 #include "aclp-sd-interface.hpp"
 
+#include <iostream>
+
 namespace ac::local {
 
 namespace sc = schema::sd;
@@ -38,9 +40,6 @@ struct BasicRunner {
                 throw_ex{} << "dummy: unknown op: " << f.op;
             }
             return {f.op, *ret};
-        }
-        catch (coro::IoClosed&) {
-            throw;
         }
         catch (std::exception& e) {
             return {"error", e.what()};
@@ -190,7 +189,8 @@ SessionCoro<void> SD_runSession() {
             }
         }
     }
-    catch (coro::IoClosed&) {
+    catch (std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
         co_return;
     }
 }
