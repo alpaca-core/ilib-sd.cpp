@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: MIT
 //
 #include <ac/local/Lib.hpp>
-
-#include <ac/frameio/local/LocalIoRunner.hpp>
-#include <ac/frameio/local/BlockingIo.hpp>
-
+#include <ac/local/IoCtx.hpp>
 #include <ac/schema/BlockingIoHelper.hpp>
 #include <ac/schema/FrameHelpers.hpp>
 
@@ -37,8 +34,11 @@ int main() try {
 
     ac::local::Lib::loadPlugin(ACLP_sd_PLUGIN_FILE);;
 
-    ac::frameio::LocalIoRunner io;
-    ac::schema::BlockingIoHelper sd(io.connectBlocking(ac::local::Lib::createSessionHandler("stable-diffusion.cpp")));
+    ac::frameio::BlockingIoCtx blockingCtx;
+    ac::local::IoCtx io;
+
+    auto& sdProvider = ac::local::Lib::getProvider("stable-diffusion.cpp");
+    ac::schema::BlockingIoHelper sd(io.connect(sdProvider), blockingCtx);
 
     sd.expectState<schema::StateInitial>();
     sd.call<schema::StateInitial::OpLoadModel>({

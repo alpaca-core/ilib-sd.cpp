@@ -7,12 +7,16 @@
 #include <ac/sd/Model.hpp>
 
 #include <ac/local/Provider.hpp>
+#include <ac/local/ProviderSessionContext.hpp>
 
 #include <ac/schema/SDCpp.hpp>
 #include <ac/schema/OpDispatchHelpers.hpp>
 
-#include <ac/frameio/SessionCoro.hpp>
 #include <ac/FrameUtil.hpp>
+#include <ac/frameio/IoEndpoint.hpp>
+
+#include <ac/xec/coro.hpp>
+#include <ac/io/exception.hpp>
 
 #include <astl/move.hpp>
 #include <astl/move_capture.hpp>
@@ -41,6 +45,9 @@ struct BasicRunner {
             }
             return {f.op, *ret};
         }
+        catch (io::stream_closed_error&) {
+            throw;
+        }
         catch (std::exception& e) {
             return {"error", e.what()};
         }
@@ -49,7 +56,7 @@ struct BasicRunner {
 
 namespace {
 
-SessionCoro<void> SD_runInstance(coro::Io io, std::unique_ptr<sd::Instance> instance) {
+xec::coro<void> Sd_runInstance(IoEndpoint& io, std::unique_ptr<sd::Instance> instance) {
     using Schema = sc::StateInstance;
 
     struct Runner : public BasicRunner {
@@ -61,14 +68,14 @@ SessionCoro<void> SD_runInstance(coro::Io io, std::unique_ptr<sd::Instance> inst
             schema::registerHandlers<Schema::Ops>(m_dispatcherData, *this);
         }
 
-       Schema::OpTextToImage::Return on(Schema::OpTextToImage, Schema::OpTextToImage::Params&& params) {
+        Schema::OpTextToImage::Return on(Schema::OpTextToImage, Schema::OpTextToImage::Params&& params) {
             auto res = m_instance.textToImage({
                 .prompt = astl::move(params.prompt.value()),
                 .negativePrompt = astl::move(params.negativePrompt.value()),
                 .width = int16_t(params.width.value()),
                 .height = int16_t(params.height.value()),
                 .sampleSteps = int16_t(params.steps.value()),
-            });
+                });
 
             return {
                 .width = res->width,
@@ -76,18 +83,18 @@ SessionCoro<void> SD_runInstance(coro::Io io, std::unique_ptr<sd::Instance> inst
                 .channel = res->channel,
                 .data = ac::Blob(res->data, res->data + res->width * res->height * res->channel)
             };
-       }
+        }
 
         Schema::OpImageToImage::Return on(Schema::OpImageToImage, Schema::OpImageToImage::Params&& params) {
             auto res = m_instance.imageToImage({
                 {
-                .prompt = astl::move(params.prompt.value()),
-                .negativePrompt = astl::move(params.negativePrompt.value()),
-                .width = int16_t(params.width.value()),
-                .height = int16_t(params.height.value()),
-                .sampleSteps = int16_t(params.steps.value()),
+                    .prompt = astl::move(params.prompt.value()),
+                    .negativePrompt = astl::move(params.negativePrompt.value()),
+                    .width = int16_t(params.width.value()),
+                    .height = int16_t(params.height.value()),
+                    .sampleSteps = int16_t(params.steps.value()),
                 },
-                .imagePath = astl::move(params.imagePath.value())
+                astl::move(params.imagePath.value())
             });
 
             return {
@@ -99,17 +106,17 @@ SessionCoro<void> SD_runInstance(coro::Io io, std::unique_ptr<sd::Instance> inst
         }
     };
 
-    co_await io.pushFrame(Frame_stateChange(Schema::id));
+    co_await io.push(Frame_stateChange(Schema::id));
 
     Runner runner(*instance);
     while (true)
     {
-        auto f = co_await io.pollFrame();
-        co_await io.pushFrame(runner.dispatch(f.frame));
+        auto f = co_await io.poll();
+        co_await io.push(runner.dispatch(*f));
     }
 }
 
-SessionCoro<void> SD_runModel(coro::Io io, std::unique_ptr<sd::Model> model) {
+xec::coro<void> Sd_runModel(IoEndpoint& io, std::unique_ptr<sd::Model> model) {
     using Schema = sc::StateModelLoaded;
 
     struct Runner : public BasicRunner {
@@ -133,20 +140,20 @@ SessionCoro<void> SD_runModel(coro::Io io, std::unique_ptr<sd::Model> model) {
         }
     };
 
-    co_await io.pushFrame(Frame_stateChange(Schema::id));
+    co_await io.push(Frame_stateChange(Schema::id));
 
     Runner runner(*model);
     while (true)
     {
-        auto f = co_await io.pollFrame();
-        co_await io.pushFrame(runner.dispatch(f.frame));
+        auto f = co_await io.poll();
+        co_await io.push(runner.dispatch(*f));
         if (runner.instance) {
-            co_await SD_runInstance(io, std::move(runner.instance));
+            co_await Sd_runInstance(io, std::move(runner.instance));
         }
     }
 }
 
-SessionCoro<void> SD_runSession() {
+xec::coro<void> Sd_runSession(StreamEndpoint ep) {
     using Schema = sc::StateInitial;
 
     struct Runner : public BasicRunner {
@@ -174,28 +181,28 @@ SessionCoro<void> SD_runSession() {
     };
 
     try {
-        auto io = co_await coro::Io{};
+        auto ex = co_await xec::executor{};
+        IoEndpoint io(std::move(ep), ex);
 
-        co_await io.pushFrame(Frame_stateChange(Schema::id));
+        co_await io.push(Frame_stateChange(Schema::id));
 
         Runner runner;
 
         while (true)
         {
-            auto f = co_await io.pollFrame();
-            co_await io.pushFrame(runner.dispatch(f.frame));
+            auto f = co_await io.poll();
+            co_await io.push(runner.dispatch(*f));
             if (runner.model) {
-                co_await SD_runModel(io, std::move(runner.model));
+                co_await Sd_runModel(io, std::move(runner.model));
             }
         }
     }
-    catch (std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+    catch (io::stream_closed_error&) {
         co_return;
     }
 }
 
-class SDProvider final : public Provider {
+class SdProvider final : public Provider {
 public:
     virtual const Info& info() const noexcept override {
         static Info i = {
@@ -205,8 +212,8 @@ public:
         return i;
     }
 
-    virtual frameio::SessionHandlerPtr createSessionHandler(std::string_view) override {
-        return CoroSessionHandler::create(SD_runSession());
+    virtual void createSession(ProviderSessionContext ctx) override {
+        co_spawn(ctx.executor.cpu, Sd_runSession(std::move(ctx.endpoint.session)));
     }
 };
 
@@ -222,7 +229,7 @@ void init() {
 
 std::vector<ac::local::ProviderPtr> getProviders() {
     std::vector<ac::local::ProviderPtr> ret;
-    ret.push_back(std::make_unique<local::SDProvider>());
+    ret.push_back(std::make_unique<local::SdProvider>());
     return ret;
 }
 
