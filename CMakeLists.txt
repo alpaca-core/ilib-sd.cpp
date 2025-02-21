@@ -37,7 +37,7 @@ init_ac_plugin_option(SD)
 #######################################
 # packages
 
-add_ac_local(0.1.12)
+add_ac_local(0.1.15)
 CPMAddPackage(gh:iboB/splat@1.3.3)
 CPMAddPackage(gh:iboB/itlib@1.11.4)
 
@@ -55,7 +55,7 @@ if(CUDAToolkit_FOUND)
 endif()
 
 if(haveCuda)
-    set(SD_CUBLAS ON)
+    set(SD_CUDA ON)
 endif()
 
 if(APPLE)
