@@ -12,6 +12,7 @@ target_link_libraries(ac-sd
         splat::splat
         ac::astl
         itlib::itlib
+        ac::local
 )
 target_sources(ac-sd PRIVATE
     ac/sd/export.h
@@ -25,4 +26,6 @@ target_sources(ac-sd PRIVATE
     ac/sd/Instance.cpp
     ac/sd/utils.hpp
     ac/sd/utils.cpp
+    ac/sd/ResourceCache.hpp
+    ac/sd/ResourceCache.cpp
 )

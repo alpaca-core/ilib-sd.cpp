@@ -5,12 +5,16 @@
 #include "export.h"
 #include "utils.hpp"
 
+#include <ac/local/Resource.hpp>
+#include <ac/local/ResourceLock.hpp>
+
 #include <astl/mem_ext.hpp>
 #include <string>
 
 struct sd_ctx_t;
 
 namespace ac::sd {
+struct SDModelResource;
 
 class AC_SD_EXPORT Model {
 public:
@@ -35,16 +39,25 @@ public:
         Schedule schedule = Schedule::DEFAULT;
         RNGType rngType = RNGType::CUDA_RNG;
         WeightType weightType = WeightType::AC_TYPE_COUNT;
+
+        bool operator==(const Params& other) const noexcept = default;
     };
 
-    Model(std::string_view pathToModel, Params params);
+    Model(local::ResourceLock<SDModelResource>&& resource, Params params);
     ~Model();
 
-    sd_ctx_t* context() const noexcept { return m_ctx; }
+    sd_ctx_t* context() const noexcept;
     const Params& params() const noexcept { return m_params; }
 
 private:
     const Params m_params;
-    sd_ctx_t* m_ctx;
+    local::ResourceLock<SDModelResource> m_resource;
 };
+
+struct SDModelResource : public local::Resource {
+    SDModelResource(std::string_view modelPath, Model::Params params);
+
+    astl::c_unique_ptr<sd_ctx_t> m_ctx;
+};
+
 } // namespace ac::sd

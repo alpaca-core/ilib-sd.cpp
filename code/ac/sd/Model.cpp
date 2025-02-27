@@ -11,11 +11,20 @@
 
 namespace ac::sd {
 
-Model::Model(std::string_view pathToModel, Params params)
+Model::Model(local::ResourceLock<SDModelResource>&& resource, Params params)
     : m_params(astl::move(params))
-    , m_ctx(nullptr)
-{
-    m_ctx = new_sd_ctx(pathToModel.data(),
+    , m_resource(astl::move(resource))
+
+{}
+
+sd_ctx_t* Model::context() const noexcept {
+    return m_resource->m_ctx.get();
+}
+
+Model::~Model() = default;
+
+SDModelResource::SDModelResource(std::string_view modelPath, Model::Params params)
+    : m_ctx(new_sd_ctx(modelPath.data(),
         params.clip_l_path.c_str(),
         params.clip_g_path.c_str(),
         params.t5xxlPath.c_str(),
@@ -36,15 +45,11 @@ Model::Model(std::string_view pathToModel, Params params)
         params.clipOnCpu,
         params.controlNetCpu,
         params.vaeOnCpu,
-        params.diffusionFlashAttn);
-
+        params.diffusionFlashAttn), free_sd_ctx)
+{
     if (!m_ctx) {
         throw std::runtime_error("Failed to load model");
     }
-}
-
-Model::~Model() {
-    free_sd_ctx(m_ctx);
 }
 
 } // namespace ac::sd

@@ -5,6 +5,7 @@
 #include <ac/sd/Instance.hpp>
 #include <ac/sd/Init.hpp>
 #include <ac/sd/Model.hpp>
+#include <ac/sd/ResourceCache.hpp>
 
 #include <ac/local/Provider.hpp>
 #include <ac/local/ProviderSessionContext.hpp>
@@ -153,15 +154,18 @@ xec::coro<void> Sd_runModel(IoEndpoint& io, std::unique_ptr<sd::Model> model) {
     }
 }
 
-xec::coro<void> Sd_runSession(StreamEndpoint ep) {
+xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCache) {
     using Schema = sc::StateInitial;
 
     struct Runner : public BasicRunner {
-        Runner() {
+        Runner(sd::ResourceCache& cache)
+            : resourceCache(cache)
+        {
             schema::registerHandlers<Schema::Ops>(m_dispatcherData, *this);
         }
 
         std::unique_ptr<sd::Model> model;
+        sd::ResourceCache& resourceCache;
 
         static sd::Model::Params ModelParams_fromSchema(sc::StateInitial::OpLoadModel::Params schemaParams) {
             sd::Model::Params ret;
@@ -174,7 +178,7 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep) {
             auto bin = params.binPath.valueOr("");
             auto lparams = ModelParams_fromSchema(params);
 
-            model = std::make_unique<sd::Model>(bin.c_str(), astl::move(lparams));
+            model = std::make_unique<sd::Model>(resourceCache.getOrCreateModel(bin, lparams), lparams);
 
             return {};
         }
@@ -186,7 +190,7 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep) {
 
         co_await io.push(Frame_stateChange(Schema::id));
 
-        Runner runner;
+        Runner runner(resourceCache);
 
         while (true)
         {
@@ -212,8 +216,10 @@ public:
         return i;
     }
 
+    sd::ResourceCache m_cache;
+
     virtual void createSession(ProviderSessionContext ctx) override {
-        co_spawn(ctx.executor.cpu, Sd_runSession(std::move(ctx.endpoint.session)));
+        co_spawn(ctx.executor.cpu, Sd_runSession(std::move(ctx.endpoint.session), m_cache));
     }
 };
 

@@ -8,6 +8,7 @@
 #include <ac/sd/Init.hpp>
 #include <ac/sd/Model.hpp>
 #include <ac/sd/Instance.hpp>
+#include <ac/sd/ResourceCache.hpp>
 
 // // logging
 #include <ac/jalog/Instance.hpp>
@@ -35,7 +36,8 @@ int main() try {
 
     // load model
     std::string modelBinFilePath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
-    ac::sd::Model model(modelBinFilePath.c_str(), {});
+    ac::sd::ResourceCache resourceCache;
+    ac::sd::Model model(resourceCache.getOrCreateModel(modelBinFilePath, {}), {});
 
     // create inference instance
     ac::sd::Instance instance(model, {});

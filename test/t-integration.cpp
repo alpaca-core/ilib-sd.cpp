@@ -4,6 +4,7 @@
 #include <ac/sd/Init.hpp>
 #include <ac/sd/Model.hpp>
 #include <ac/sd/Instance.hpp>
+#include <ac/sd/ResourceCache.hpp>
 
 #include <doctest/doctest.h>
 
@@ -22,6 +23,7 @@ struct GlobalFixture {
 };
 
 GlobalFixture globalFixture;
+ac::sd::ResourceCache resourceCache;
 
 std::string sd_v1_4_modelPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
 
@@ -68,7 +70,7 @@ bool checkImage(uint8_t* data, uint32_t width, uint32_t height, uint32_t channel
 // since it's hard to predict the exact output on all platforms
 // due to floating point differences
 TEST_CASE("inference") {
-    ac::sd::Model model(sd_v1_4_modelPath, {});
+    ac::sd::Model model(resourceCache.getOrCreateModel(sd_v1_4_modelPath, {}), {});
     REQUIRE(!!model.context());
 
     ac::sd::Instance instance(model, {});
