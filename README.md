@@ -14,7 +14,7 @@ This is a wrapper of [leejet/stable-diffusion.cpp](https://github.com/leejet/sta
 
 ## Models
 
-Download the original `stable-diffusion` models weights. Supported formats are `.ckpt` and `.safetensors`.
+Download the original `stable-diffusion` models weights. Supported formats are `.ckpt`, `.safetensors`, `.gguf`.
 Here are some examples:
 
 - [SD v1.4](https://huggingface.co/CompVis/stable-diffusion-v-1-4-original)
