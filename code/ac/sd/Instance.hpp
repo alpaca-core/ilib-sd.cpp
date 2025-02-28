@@ -44,7 +44,7 @@ public:
         int16_t width = 512;
         int16_t height = 512;
         SampleMethod sampleMethod = SampleMethod::EULER;
-        int16_t sampleSteps = 20;
+        int16_t sampleSteps = 30;
         int16_t batchCount = 1;
         int64_t seed = 42;
         std::string controlImagePath = "";

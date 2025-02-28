@@ -97,9 +97,9 @@ struct StateInstance {
         struct Params {
             Field<std::string> prompt;
             Field<std::string> negativePrompt = Default("");
-            Field<int16_t> width = Default(256);
-            Field<int16_t> height = Default(256);
-            Field<int16_t> steps = Default(20);
+            Field<int16_t> width = Default(512);
+            Field<int16_t> height = Default(512);
+            Field<int16_t> steps = Default(30);
 
             template <typename Visitor>
             void visitFields(Visitor& v) {
@@ -135,9 +135,9 @@ struct StateInstance {
             Field<std::string> prompt;
             Field<std::string> imagePath;
             Field<std::string> negativePrompt = Default("");
-            Field<int16_t> width = Default(256);
-            Field<int16_t> height = Default(256);
-            Field<int16_t> steps = Default(20);
+            Field<int16_t> width = Default(512);
+            Field<int16_t> height = Default(512);
+            Field<int16_t> steps = Default(30);
 
             template <typename Visitor>
             void visitFields(Visitor& v) {
