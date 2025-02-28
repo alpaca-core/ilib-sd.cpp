@@ -18,6 +18,46 @@ Download the original `stable-diffusion` models weights. Supported formats are `
 Here are some examples:
 
 - [SD v1.4](https://huggingface.co/CompVis/stable-diffusion-v-1-4-original)
-- [SD v2.1](https://huggingface.co/stabilityai/stable-diffusion-2-1)
+
+```c++
+    ac::sd::ResourceCache resourceCache;
+    ac::sd::Model model(resourceCache.getOrCreateModel("models/sd-v1-4.ckpt", {}), {});
+```
+
+- [Flux1-dev](https://huggingface.co/second-state/FLUX.1-dev-GGUF)
+```c++
+    ac::sd::ResourceCache resourceCache;
+    ac::sd::Model model(resourceCache.getOrCreateModel("", {}), {
+        .diffusionModelPath = "models/flux1-dev-Q8_0.gguf",
+        .clip_l_path = "models/text_encoders/clip_l-Q8_0.gguf",
+        .t5xxlPath = "models/text_encoders/t5xxl-Q8_0.gguf",
+        .vaePath = "models/vae/ae.safetensors"
+    });
+```
+
 - [SD 3 medium](https://huggingface.co/stabilityai/stable-diffusion-3-medium)
+
+```c++
+    ac::sd::ResourceCache resourceCache;
+    // if text encoders encoders are embedded in the model:
+    ac::sd::Model model(resourceCache.getOrCreateModel("models/sd3_medium_incl_clips_t5xxlfp16.safetensors", {}), {});
+
+    // if text endores are in separate files:
+    ac::sd::Model model(resourceCache.getOrCreateModel("models/sd3_medium.safetensors", {
+        .clip_l_path = "models/text_encoders/clip_l.safetensors",
+        .clip_g_path = "models/text_encoders/clip_g.safetensors",
+        .t5xxlPath = "models/text_encoders/t5xxl_fp16.safetensors"
+    }), {});
+```
+
 - [SD 3.5 large](https://huggingface.co/stabilityai/stable-diffusion-3.5-large)
+
+```c++
+    ac::sd::ResourceCache resourceCache;
+    std::string modelBinFilePath = "models/sd3.5_large.safetensors";
+    ac::sd::Model model(resourceCache.getOrCreateModel("models/sd3.5_large.safetensors", {
+        .clip_l_path = "models/text_encoders/clip_l.safetensors",
+        .clip_g_path = "models/text_encoders/clip_g.safetensors",
+        .t5xxlPath = "models/text_encoders/t5xxl_fp16.safetensors"
+    }), {});
+```
