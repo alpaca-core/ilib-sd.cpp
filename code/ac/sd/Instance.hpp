@@ -39,11 +39,11 @@ public:
         std::string prompt = "";
         std::string negativePrompt = "";
         int16_t clip_skip = -1;
-        float cfg_scale = 7.0f;
+        float cfg_scale = 5.0f;
         float guidance = 3.5f;
         int16_t width = 512;
         int16_t height = 512;
-        SampleMethod sampleMethod = SampleMethod::EULER_A;
+        SampleMethod sampleMethod = SampleMethod::EULER;
         int16_t sampleSteps = 20;
         int16_t batchCount = 1;
         int64_t seed = 42;
