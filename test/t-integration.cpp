@@ -82,7 +82,7 @@ TEST_CASE("inference") {
             .prompt = "A gray background."
         });
 
-        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2));
+        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2f));
         saveImage(result.get(), inputImage);
     }
 
@@ -92,6 +92,6 @@ TEST_CASE("inference") {
         params.imagePath = inputImage;
         params.prompt = "add more blue to background color";
         auto  result = instance.imageToImage(params);
-        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2));
+        CHECK(checkImage(result->data, result->width, result->height, result->channel, 0.2f));
     }
 }
