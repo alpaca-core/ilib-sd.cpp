@@ -7,8 +7,10 @@
 #include <ac/sd/Model.hpp>
 #include <ac/sd/ResourceCache.hpp>
 
-#include <ac/local/Provider.hpp>
-#include <ac/local/ProviderSessionContext.hpp>
+#include <ac/local/Service.hpp>
+#include <ac/local/ServiceFactory.hpp>
+#include <ac/local/ServiceInfo.hpp>
+#include <ac/local/Backend.hpp>
 
 #include <ac/schema/SDCpp.hpp>
 #include <ac/schema/OpDispatchHelpers.hpp>
@@ -42,7 +44,7 @@ struct BasicRunner {
         try {
             auto ret = m_dispatcherData.dispatch(f.op, std::move(f.data));
             if (!ret) {
-                throw_ex{} << "dummy: unknown op: " << f.op;
+                throw_ex{} << "sd: unknown op: " << f.op;
             }
             return {f.op, *ret};
         }
@@ -206,24 +208,36 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCach
     }
 }
 
-class SdProvider final : public Provider {
-public:
-    virtual const Info& info() const noexcept override {
-        static Info i = {
-            .name = "ac stable-diffusion.cpp",
-            .vendor = "Alpaca Core"
-        };
-        return i;
-    }
+ServiceInfo g_serviceInfo = {
+    .name = "ac stable-diffusion.cpp",
+    .vendor = "Alpaca Core"
+};
 
+struct SdService final : public Service {
+    xec::strand gpuStrand;
     sd::ResourceCache m_cache;
 
-    virtual void createSession(ProviderSessionContext ctx) override {
-        co_spawn(ctx.executor.cpu, Sd_runSession(std::move(ctx.endpoint.session), m_cache));
+    virtual const ServiceInfo& info() const noexcept override {
+        return g_serviceInfo;
+    }
+
+    virtual void createSession(frameio::StreamEndpoint ep, std::string_view) override {
+        co_spawn(gpuStrand, Sd_runSession(std::move(ep), m_cache));
     }
 };
 
-}
+struct SdServiceFactory final : public ServiceFactory {
+    virtual const ServiceInfo& info() const noexcept override {
+        return g_serviceInfo;
+    }
+    virtual std::unique_ptr<Service> createService(const Backend& backend) const override {
+        auto svc = std::make_unique<SdService>();
+        svc->gpuStrand = backend.xctx().gpu;
+        return svc;
+    }
+};
+
+} // namespace
 
 } // namespace ac::local
 
@@ -233,10 +247,9 @@ void init() {
     initLibrary();
 }
 
-std::vector<ac::local::ProviderPtr> getProviders() {
-    std::vector<ac::local::ProviderPtr> ret;
-    ret.push_back(std::make_unique<local::SdProvider>());
-    return ret;
+std::vector<const local::ServiceFactory*> getFactories() {
+    static local::SdServiceFactory factory;
+    return {&factory};
 }
 
 local::PluginInterface getPluginInterface() {
@@ -248,7 +261,7 @@ local::PluginInterface getPluginInterface() {
             ACLP_sd_VERSION_MAJOR, ACLP_sd_VERSION_MINOR, ACLP_sd_VERSION_PATCH
         },
         .init = init,
-        .getProviders = getProviders,
+        .getServiceFactories = getFactories,
     };
 }
 
