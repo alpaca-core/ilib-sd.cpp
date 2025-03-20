@@ -94,12 +94,10 @@ sd_type_t getSdWeightType(WeightType type) {
             return SD_TYPE_IQ1_M;
         case WeightType::AC_TYPE_BF16:
             return SD_TYPE_BF16;
-        case WeightType::AC_TYPE_Q4_0_4_4:
-            return SD_TYPE_Q4_0_4_4;
-        case WeightType::AC_TYPE_Q4_0_4_8:
-            return SD_TYPE_Q4_0_4_8;
-        case WeightType::AC_TYPE_Q4_0_8_8:
-            return SD_TYPE_Q4_0_8_8;
+        case WeightType::AC_TYPE_TQ1_0:
+            return SD_TYPE_TQ1_0;
+        case WeightType::AC_TYPE_TQ2_0:
+            return SD_TYPE_TQ2_0;
         default:
             return SD_TYPE_COUNT;
     }
@@ -128,6 +126,10 @@ sample_method_t getSdSamplerMethod(SampleMethod sampler) {
         return sample_method_t::IPNDM_V;
     case SampleMethod::LCM:
         return sample_method_t::LCM;
+    case SampleMethod::DDIM_TRAILING:
+        return sample_method_t::DDIM_TRAILING;
+    case SampleMethod::TCD:
+        return sample_method_t::TCD;
     default:
         return sample_method_t::EULER_A;
     }

@@ -41,6 +41,7 @@ public:
         int16_t clip_skip = -1;
         float cfg_scale = 5.0f;
         float guidance = 3.5f;
+        float eta = 0.f;
         int16_t width = 512;
         int16_t height = 512;
         SampleMethod sampleMethod = SampleMethod::EULER;
@@ -52,6 +53,7 @@ public:
         float style_ratio = 20.0f;
         bool normalize_input = false;
         std::string input_id_images_path = "";
+        // bool cannyPreprocess = false; // apply canny preprocessor (edge detection)
     };
     std::unique_ptr<ImageResult> textToImage(const TextToImageParams& params);
 
