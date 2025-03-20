@@ -5,9 +5,6 @@
 #include "export.h"
 #include "utils.hpp"
 
-#include <ac/local/Resource.hpp>
-#include <ac/local/ResourceLock.hpp>
-
 #include <astl/mem_ext.hpp>
 #include <string>
 
