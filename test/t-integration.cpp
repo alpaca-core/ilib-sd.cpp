@@ -70,10 +70,10 @@ bool checkImage(uint8_t* data, uint32_t width, uint32_t height, uint32_t channel
 // since it's hard to predict the exact output on all platforms
 // due to floating point differences
 TEST_CASE("inference") {
-    ac::sd::Model model(resourceCache.getOrCreateModel(sd_v1_4_modelPath, {}), {});
-    REQUIRE(!!model.context());
+    ac::sd::ResourceCache::ModelLock model = resourceCache.getModel({ .modelPath = sd_v1_4_modelPath});
+    REQUIRE(!!model->context());
 
-    ac::sd::Instance instance(model, {});
+    ac::sd::Instance instance(*model, {});
 
     std::string inputImage = "test_text2img.png";
     // text2img

@@ -27,5 +27,4 @@ target_sources(ac-sd PRIVATE
     ac/sd/utils.hpp
     ac/sd/utils.cpp
     ac/sd/ResourceCache.hpp
-    ac/sd/ResourceCache.cpp
 )

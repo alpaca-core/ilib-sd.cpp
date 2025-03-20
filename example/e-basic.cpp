@@ -37,10 +37,11 @@ int main() try {
     // load model
     std::string modelBinFilePath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
     ac::sd::ResourceCache resourceCache;
-    ac::sd::Model model(resourceCache.getOrCreateModel(modelBinFilePath, {}), {});
+
+    ac::sd::ResourceCache::ModelLock model = resourceCache.getModel({ .modelPath = modelBinFilePath});
 
     // create inference instance
-    ac::sd::Instance instance(model, {});
+    ac::sd::Instance instance(*model, {});
 
     std::string prompt = "A painting of a beautiful sunset over a calm lake.";
     std::cout << "Generate image with text: \""<< prompt <<"\": \n\n";

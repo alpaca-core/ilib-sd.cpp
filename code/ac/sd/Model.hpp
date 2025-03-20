@@ -43,20 +43,14 @@ public:
         bool operator==(const Params& other) const noexcept = default;
     };
 
-    Model(local::ResourceLock<SDModelResource>&& resource, Params params);
-    ~Model();
+    Model(std::string_view modelPath, Params params);
+    ~Model() = default;
 
-    sd_ctx_t* context() const noexcept;
+    sd_ctx_t* context() const noexcept { return m_ctx.get(); };
     const Params& params() const noexcept { return m_params; }
 
 private:
     const Params m_params;
-    local::ResourceLock<SDModelResource> m_resource;
-};
-
-struct SDModelResource : public local::Resource {
-    SDModelResource(std::string_view modelPath, Model::Params params);
-
     astl::c_unique_ptr<sd_ctx_t> m_ctx;
 };
 

@@ -119,7 +119,7 @@ xec::coro<void> Sd_runInstance(IoEndpoint& io, std::unique_ptr<sd::Instance> ins
     }
 }
 
-xec::coro<void> Sd_runModel(IoEndpoint& io, std::unique_ptr<sd::Model> model) {
+xec::coro<void> Sd_runModel(IoEndpoint& io, sd::Model& model) {
     using Schema = sc::StateModelLoaded;
 
     struct Runner : public BasicRunner {
@@ -145,7 +145,7 @@ xec::coro<void> Sd_runModel(IoEndpoint& io, std::unique_ptr<sd::Model> model) {
 
     co_await io.push(Frame_stateChange(Schema::id));
 
-    Runner runner(*model);
+    Runner runner(model);
     while (true)
     {
         auto f = co_await io.poll();
@@ -166,7 +166,7 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCach
             schema::registerHandlers<Schema::Ops>(m_dispatcherData, *this);
         }
 
-        std::unique_ptr<sd::Model> model;
+        sd::ResourceCache::ModelLock model;
         sd::ResourceCache& resourceCache;
 
         static sd::Model::Params ModelParams_fromSchema(sc::StateInitial::OpLoadModel::Params schemaParams) {
@@ -180,7 +180,10 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCach
             auto bin = params.binPath.valueOr("");
             auto lparams = ModelParams_fromSchema(params);
 
-            model = std::make_unique<sd::Model>(resourceCache.getOrCreateModel(bin, lparams), lparams);
+            model = resourceCache.getModel({
+                .modelPath = bin,
+                .params = lparams
+            });
 
             return {};
         }
@@ -199,7 +202,7 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCach
             auto f = co_await io.poll();
             co_await io.push(runner.dispatch(*f));
             if (runner.model) {
-                co_await Sd_runModel(io, std::move(runner.model));
+                co_await Sd_runModel(io, *runner.model);
             }
         }
     }
