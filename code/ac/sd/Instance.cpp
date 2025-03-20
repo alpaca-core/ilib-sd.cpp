@@ -183,7 +183,7 @@ sd_image_t Instance::loadImage(const std::string& path, int& width, int& height,
     }
     if (c < 3) {
         free(outControlImgBuffer);
-        throw_ex{} << "error: the number of channels of image must be greater than 0\n";
+        throw_ex{} << "error: the number of channels for the input image must be >= 3, but got " << c;
     }
     return sd_image_t{ (uint32_t)width, (uint32_t)height,  3, outControlImgBuffer};
 }
