@@ -4,20 +4,16 @@
 #pragma once
 #include "Model.hpp"
 
-#include <ac/local/ResourceManager.hpp>
+#include <ac/local/ResourceCache.hpp>
 
 namespace ac::sd {
 
-struct ModelKey {
-    std::string modelPath;
-    Model::Params params;
-
-    bool operator==(const ModelKey& other) const noexcept = default;
-};
-
-
-class AC_SD_EXPORT ResourceCache {
+class ResourceCache {
 public:
+    ResourceCache(local::ResourceManager& rm)
+        : m_models(rm)
+    {}
+
     struct ModelParams {
         std::string modelPath;
         Model::Params params;
@@ -25,22 +21,20 @@ public:
         bool operator==(const ModelParams& other) const noexcept = default;
     };
 
-    struct ModelResource : public Model, local::Resource {
-        ModelResource(const ModelParams& params)
-            : Model(params.modelPath, params.params)
-        {}
+    struct ModelResource : public Model, public local::Resource {
+        using Model::Model;
     };
 
     using ModelLock = local::ResourceLock<ModelResource>;
 
     ModelLock getModel(ModelParams params) {
-        return m_modelManager.findOrCreate(std::move(params), [&](const ModelParams& key) {
-            return std::make_shared<ModelResource>(key);
+        return m_models.findOrCreate(std::move(params), [&](const ModelParams& key) {
+            return std::make_shared<ModelResource>(key.modelPath, key.params);
         });
     }
 
 private:
-    local::ResourceManager<ModelParams, ModelResource> m_modelManager;
+    local::ResourceCache<ModelParams, ModelResource> m_models;
 };
 
 }

@@ -41,14 +41,14 @@ public:
     };
 
     Model(std::string_view modelPath, Params params);
-    ~Model() = default;
+    ~Model();
 
-    sd_ctx_t* context() const noexcept { return m_ctx.get(); };
+    sd_ctx_t* context() const noexcept { return m_ctx.get(); }
     const Params& params() const noexcept { return m_params; }
 
 private:
-    const Params m_params;
     astl::c_unique_ptr<sd_ctx_t> m_ctx;
+    const Params m_params;
 };
 
 } // namespace ac::sd

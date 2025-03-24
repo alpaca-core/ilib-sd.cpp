@@ -23,7 +23,8 @@ struct GlobalFixture {
 };
 
 GlobalFixture globalFixture;
-ac::sd::ResourceCache resourceCache;
+ac::local::ResourceManager rm;
+ac::sd::ResourceCache resourceCache(rm);
 
 std::string sd_v1_4_modelPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
 
@@ -70,7 +71,7 @@ bool checkImage(uint8_t* data, uint32_t width, uint32_t height, uint32_t channel
 // since it's hard to predict the exact output on all platforms
 // due to floating point differences
 TEST_CASE("inference") {
-    ac::sd::ResourceCache::ModelLock model = resourceCache.getModel({ .modelPath = sd_v1_4_modelPath});
+    auto model = resourceCache.getModel({.modelPath = sd_v1_4_modelPath, .params = {}});
     REQUIRE(!!model->context());
 
     ac::sd::Instance instance(*model, {});

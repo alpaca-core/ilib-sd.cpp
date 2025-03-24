@@ -36,9 +36,9 @@ int main() try {
 
     // load model
     std::string modelBinFilePath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt";
-    ac::sd::ResourceCache resourceCache;
-
-    ac::sd::ResourceCache::ModelLock model = resourceCache.getModel({ .modelPath = modelBinFilePath});
+    ac::local::ResourceManager rm;
+    ac::sd::ResourceCache cache(rm);
+    auto model = cache.getModel({.modelPath = modelBinFilePath, .params = {}});
 
     // create inference instance
     ac::sd::Instance instance(*model, {});

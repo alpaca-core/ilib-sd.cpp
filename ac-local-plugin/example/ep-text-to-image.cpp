@@ -35,7 +35,7 @@ int main() try {
     ac::local::Lib::loadPlugin(ACLP_sd_PLUGIN_FILE);;
 
     ac::local::DefaultBackend backend;
-    ac::schema::BlockingIoHelper sd(backend.connect("stable-diffusion.cpp"));
+    ac::schema::BlockingIoHelper sd(backend.connect("stable-diffusion.cpp", {}));
 
     sd.expectState<schema::StateInitial>();
     sd.call<schema::StateInitial::OpLoadModel>({

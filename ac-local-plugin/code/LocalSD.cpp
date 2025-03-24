@@ -11,6 +11,7 @@
 #include <ac/local/ServiceFactory.hpp>
 #include <ac/local/ServiceInfo.hpp>
 #include <ac/local/Backend.hpp>
+#include <ac/local/BackendWorkerStrand.hpp>
 
 #include <ac/schema/SDCpp.hpp>
 #include <ac/schema/OpDispatchHelpers.hpp>
@@ -180,10 +181,7 @@ xec::coro<void> Sd_runSession(StreamEndpoint ep, sd::ResourceCache& resourceCach
             auto bin = params.binPath.valueOr("");
             auto lparams = ModelParams_fromSchema(params);
 
-            model = resourceCache.getModel({
-                .modelPath = bin,
-                .params = lparams
-            });
+            model = resourceCache.getModel({.modelPath = bin, .params = lparams});
 
             return {};
         }
@@ -217,15 +215,17 @@ ServiceInfo g_serviceInfo = {
 };
 
 struct SdService final : public Service {
-    xec::strand gpuStrand;
-    sd::ResourceCache m_cache;
+    SdService(BackendWorkerStrand& ws) : m_workerStrand(ws) {}
+
+    BackendWorkerStrand& m_workerStrand;
+    sd::ResourceCache m_resourceCache{m_workerStrand.resourceManager};
 
     virtual const ServiceInfo& info() const noexcept override {
         return g_serviceInfo;
     }
 
-    virtual void createSession(frameio::StreamEndpoint ep, std::string_view) override {
-        co_spawn(gpuStrand, Sd_runSession(std::move(ep), m_cache));
+    virtual void createSession(frameio::StreamEndpoint ep, Dict) override {
+        co_spawn(m_workerStrand.executor(), Sd_runSession(std::move(ep), m_resourceCache));
     }
 };
 
@@ -233,9 +233,8 @@ struct SdServiceFactory final : public ServiceFactory {
     virtual const ServiceInfo& info() const noexcept override {
         return g_serviceInfo;
     }
-    virtual std::unique_ptr<Service> createService(const Backend& backend) const override {
-        auto svc = std::make_unique<SdService>();
-        svc->gpuStrand = backend.xctx().gpu;
+    virtual std::unique_ptr<Service> createService(Backend& backend) const override {
+        auto svc = std::make_unique<SdService>(backend.gpuWorkerStrand());
         return svc;
     }
 };
