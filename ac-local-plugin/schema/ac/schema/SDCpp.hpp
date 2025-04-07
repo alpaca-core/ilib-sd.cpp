@@ -3,6 +3,8 @@
 //
 #pragma once
 #include <ac/schema/Field.hpp>
+#include <ac/schema/Progress.hpp>
+#include <ac/schema/StateChange.hpp>
 #include <ac/Dict.hpp>
 #include <vector>
 #include <string>
@@ -12,8 +14,8 @@ namespace ac::schema {
 
 inline namespace sd {
 
-struct StateInitial {
-    static constexpr auto id = "initial";
+struct StateSD {
+    static constexpr auto id = "sd.cpp";
     static constexpr auto desc = "Initial state";
 
     struct OpLoadModel {
@@ -61,12 +63,13 @@ struct StateInitial {
             }
         };
 
-        using Return = nullptr_t;
+        using Return = StateChange;
+
+        using Ins = std::tuple<>;
+        using Outs = std::tuple<sys::Progress>;
     };
 
     using Ops = std::tuple<OpLoadModel>;
-    using Ins = std::tuple<>;
-    using Outs = std::tuple<>;
 };
 
 struct StateModelLoaded {
@@ -78,12 +81,10 @@ struct StateModelLoaded {
         static constexpr auto desc = "Start a new instance of the sd.cpp model";
 
         using Params = nullptr_t;
-        using Return = nullptr_t;
+        using Return = StateChange;
     };
 
     using Ops = std::tuple<OpStartInstance>;
-    using Ins = std::tuple<>;
-    using Outs = std::tuple<>;
 };
 
 struct StateInstance {
@@ -125,9 +126,11 @@ struct StateInstance {
                 v(data, "data", "Image data");
             }
         };
+
+        using Type = Return;
     };
 
-        struct OpImageToImage {
+    struct OpImageToImage {
         static inline constexpr std::string_view id = "imageToImage";
         static inline constexpr std::string_view desc = "Run the stable-diffusion.cpp inference and produce image from image and text";
 
@@ -164,18 +167,18 @@ struct StateInstance {
                 v(data, "data", "Image data");
             }
         };
+
+        using Type = Return;
     };
 
     using Ops = std::tuple<OpTextToImage, OpImageToImage>;
-    using Ins = std::tuple<>;
-    using Outs = std::tuple<>;
 };
 
 struct Interface {
     static inline constexpr std::string_view id = "stable-diffusion.cpp";
     static inline constexpr std::string_view desc = "Inference based on our fork of https://github.com/leejet/stable-diffusion.cpp";
 
-    using States = std::tuple<StateInitial, StateModelLoaded, StateInstance>;
+    using States = std::tuple<StateSD>;
 };
 
 } // namespace sd

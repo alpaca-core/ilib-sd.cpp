@@ -37,14 +37,17 @@ int main() try {
     ac::local::DefaultBackend backend;
     ac::schema::BlockingIoHelper sd(backend.connect("stable-diffusion.cpp", {}));
 
-    sd.expectState<schema::StateInitial>();
-    sd.call<schema::StateInitial::OpLoadModel>({
-        .binPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt"
-    });
-    sd.expectState<schema::StateModelLoaded>();
+    auto sid = sd.poll<ac::schema::StateChange>();
+    std::cout << "Initial state: " << sid << '\n';
 
-    sd.call<schema::StateModelLoaded::OpStartInstance>({});
-    sd.expectState<schema::StateInstance>();
+    for (auto x : sd.stream<schema::StateSD::OpLoadModel>({
+            .binPath = AC_TEST_DATA_SD_DIR "/sd-v1-4.ckpt"
+        })) {
+            std::cout << "Model loaded: " << x.tag.value() << " " << x.progress.value() << '\n';
+    }
+
+    sid = sd.call<schema::StateModelLoaded::OpStartInstance>({});
+    std::cout << "Instance started: " << sid << '\n';
 
     struct ImageResult {
         int width;
